@@ -26,15 +26,13 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/assessments', require('./routes/assessmentRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 
-// Connect to MongoDB
-mongoose.connect(env.mongoUri)
-  .then(() => {
-    console.log('Connected to MongoDB');
-    app.listen(env.port, () => {
-      console.log(`Server running in ${env.nodeEnv} mode on port ${env.port}`);
-    });
-  })
-  .catch((err) => {
-    console.error('Failed to connect to MongoDB', err);
-    process.exit(1);
-  });
+// Start the server first so Render detects the open port immediately
+const PORT = env.port || 5000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running in ${env.nodeEnv} mode on port ${PORT}`);
+  
+  // Connect to MongoDB
+  mongoose.connect(env.mongoUri)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch((err) => console.error('Failed to connect to MongoDB:', err.message));
+});

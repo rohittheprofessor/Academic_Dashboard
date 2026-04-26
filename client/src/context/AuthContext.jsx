@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Configure Axios defaults
-  axios.defaults.baseURL = 'http://localhost:5000'; // Ensure server runs on 5000
+  axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000'; // Uses production URL if set
 
   useEffect(() => {
     if (token) {
