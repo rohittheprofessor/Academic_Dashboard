@@ -6,6 +6,9 @@ const { applySecurityMiddleware } = require('./middleware/security');
 
 const app = express();
 
+// Trust reverse proxy (required for Render so rate-limiter can read IPs)
+app.set('trust proxy', 1);
+
 // Apply Security Middlewares (Helmet, Rate Limiter, Mongo Sanitize, JSON limits)
 applySecurityMiddleware(app);
 
