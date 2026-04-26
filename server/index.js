@@ -14,7 +14,8 @@ const allowedOrigins = [
   env.clientUrl,
   'http://localhost:5173',
   'http://localhost:5174',
-  'https://smartevalmit.netlify.app'
+  'https://smartevalmit.netlify.app',
+  'https://academic-dashboard-pink.vercel.app'
 ];
 
 app.use(cors({
