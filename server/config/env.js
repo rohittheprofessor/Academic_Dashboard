@@ -6,7 +6,7 @@ const config = {
   jwtSecret: process.env.JWT_SECRET || 'fallback_secret_for_development_only',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1d',
   nodeEnv: process.env.NODE_ENV || 'development',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173'
+  clientUrl: process.env.CLIENT_URL || 'https://smartevalmit.netlify.app'
 };
 
 module.exports = config;
