@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background-light text-slate-800 antialiased transition-colors duration-500 overflow-x-hidden;
+    /* Add subtle gradient mesh to body background */
+    background-image: radial-gradient(at 40% 20%, hsla(210,100%,96%,0.7) 0px, transparent 50%), 
+                      radial-gradient(at 80% 0%, hsla(189,100%,94%,0.7) 0px, transparent 50%), 
+                      radial-gradient(at 0% 50%, hsla(355,100%,95%,0.7) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+  
+  .dark body {
+    @apply bg-background-dark text-slate-200;
+    background-image: radial-gradient(at 40% 20%, hsla(210,100%,10%,0.5) 0px, transparent 50%), 
+                      radial-gradient(at 80% 0%, hsla(189,100%,8%,0.5) 0px, transparent 50%), 
+                      radial-gradient(at 0% 50%, hsla(355,100%,10%,0.5) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-glass shadow-inner-light;
+  }
+  
+  .dark .glass {
+    @apply bg-[#141414]/60 backdrop-blur-xl border border-white/5 shadow-glass-dark shadow-inner-dark;
+  }
+
+  .glass-card {
+    @apply glass rounded-3xl p-6 transition-all duration-300;
+  }
+  
+  .glass-card-hover {
+    @apply hover:-translate-y-1 hover:shadow-glass-hover dark:hover:shadow-glass-hover-dark hover:bg-white/80 dark:hover:bg-[#1a1a1a]/80;
+  }
+
+  /* Custom scrollbar for webkit */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent; 
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 dark:bg-white/10 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-300 dark:bg-white/20;
+  }
+}
