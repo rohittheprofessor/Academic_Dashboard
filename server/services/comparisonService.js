@@ -29,8 +29,8 @@ const compareAssessments = async (targetAssessmentId) => {
     query['metadata.paperCode'] = paperCode;
   }
 
-  // Find the most recent previous assessment (sort descending by sequence)
-  const baseline = await Assessment.findOne(query).sort({ 'metadata.examSequence': -1 });
+  // Find the most recent previous assessment (sort descending by sequence, then by date)
+  const baseline = await Assessment.findOne(query).sort({ 'metadata.examSequence': -1, createdAt: -1 });
 
   if (!baseline) {
     // No CT1 exists, return null to hide charts gracefully
