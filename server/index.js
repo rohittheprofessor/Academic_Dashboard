@@ -51,8 +51,39 @@ const PORT = env.port || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running in ${env.nodeEnv} mode on port ${PORT}`);
   
-  // Connect to MongoDB
-  mongoose.connect(env.mongoUri)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => console.error('Failed to connect to MongoDB:', err.message));
+// Auto-seed Admin on Startup
+const seedAdmin = async () => {
+  try {
+    const User = require('./models/User');
+    const bcrypt = require('bcryptjs');
+    const adminExists = await User.findOne({ email: 'admin@smarteval.com' });
+    if (!adminExists) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash('Admin@1234', salt);
+      await User.create({
+        name: 'System Administrator',
+        email: 'admin@smarteval.com',
+        mobile: '0000000000',
+        department: 'Management',
+        designation: 'Super Admin',
+        password: hashedPassword,
+        role: 'Super Admin',
+        status: 'Approved'
+      });
+      console.log('✅ Auto-seeded Super Admin account on startup.');
+    } else {
+      console.log('✅ Super Admin account already exists.');
+    }
+  } catch (err) {
+    console.error('Failed to auto-seed admin:', err.message);
+  }
+};
+
+// Connect to MongoDB
+mongoose.connect(env.mongoUri)
+  .then(() => {
+    console.log('Connected to MongoDB');
+    seedAdmin();
+  })
+  .catch((err) => console.error('Failed to connect to MongoDB:', err.message));
 });
