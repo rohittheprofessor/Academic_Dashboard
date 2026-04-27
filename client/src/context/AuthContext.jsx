@@ -62,6 +62,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setToken(null);
+    localStorage.removeItem('activeClassSession');
+    localStorage.removeItem('selectedAssessmentId');
   };
 
   const value = {
