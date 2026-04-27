@@ -64,6 +64,20 @@ export const ErpUploadFlow = () => {
       const classContext = JSON.parse(localStorage.getItem('activeClassSession') || '{}');
       
       // Merge ERP metadata with Dashboard Context mapped to schema fields
+      const tName = (parsedMetadata.testName || 'Internal Assessment').toUpperCase();
+      let testType = 'Internal';
+      let examSequence = 1;
+      
+      if (tName.includes('CT')) {
+        testType = 'CT';
+        const match = tName.match(/CT[\s-]*(\d+)/);
+        if (match) examSequence = parseInt(match[1]);
+      } else if (tName.includes('MAKEUP')) {
+        testType = 'Makeup';
+      } else if (tName.includes('EXTERNAL')) {
+        testType = 'External';
+      }
+
       const finalMetadata = {
         ...parsedMetadata,
         sessionYear: classContext.academicYear || parsedMetadata.session,
@@ -71,7 +85,9 @@ export const ErpUploadFlow = () => {
         semester: classContext.semester || parsedMetadata.semester,
         section: classContext.section || parsedMetadata.section,
         courseId: classContext.subject || parsedMetadata.course,
-        testName: parsedMetadata.testName || 'Internal Assessment'
+        testName: parsedMetadata.testName || 'Internal Assessment',
+        testType,
+        examSequence
       };
 
       const payload = {
