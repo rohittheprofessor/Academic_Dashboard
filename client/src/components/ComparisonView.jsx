@@ -110,6 +110,43 @@ export const ComparisonView = () => {
           </div>
         </motion.div>
       </div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass rounded-3xl border border-white/40 shadow-glass overflow-hidden">
+        <div className="p-6 border-b border-slate-200 dark:border-white/10 flex justify-between items-center bg-slate-50/50 dark:bg-white/5">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white">Full Class Comparison</h3>
+          <span className="bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-400 px-3 py-1 rounded-full text-xs font-bold">
+            {data.studentComparisons.length} Students
+          </span>
+        </div>
+        <div className="overflow-x-auto max-h-[500px]">
+          <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
+            <thead className="bg-slate-50/80 dark:bg-[#1a1a1a]/80 sticky top-0 backdrop-blur-md z-10">
+              <tr>
+                <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-xs">Roll No</th>
+                <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-xs">Student Name</th>
+                <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-xs text-center">{data.baselineName} Score</th>
+                <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-xs text-center">{data.targetName} Score</th>
+                <th className="px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-xs text-right">Net Change</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+              {data.studentComparisons.map((s) => (
+                <tr key={s.rollNo} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                  <td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">{s.rollNo}</td>
+                  <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{s.name}</td>
+                  <td className="px-6 py-4 text-center font-semibold text-slate-600 dark:text-slate-300">{s.baselineScore}%</td>
+                  <td className="px-6 py-4 text-center font-semibold text-slate-800 dark:text-white">{s.targetScore}%</td>
+                  <td className="px-6 py-4 text-right font-black">
+                    <span className={`px-2.5 py-1 rounded-lg text-xs ${s.improvement > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : s.improvement < 0 ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400' : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-400'}`}>
+                      {s.improvement > 0 ? '+' : ''}{s.improvement}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
     </div>
   );
 };
