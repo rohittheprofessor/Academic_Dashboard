@@ -30,7 +30,26 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('user');
       setUser(null);
     }
+
+    // Axios Interceptor for 401
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          // Token expired or invalid
+          setToken(null);
+          localStorage.removeItem('activeClassSession');
+          localStorage.removeItem('selectedAssessmentId');
+        }
+        return Promise.reject(error);
+      }
+    );
+
     setLoading(false);
+
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
   }, [token]);
 
   const login = async (email, password) => {

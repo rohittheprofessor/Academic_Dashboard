@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, GraduationCap, Building, Users, Calendar, ArrowRight } from 'lucide-react';
+import { BookOpen, GraduationCap, Building, Users, Calendar, ArrowRight, Clock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export const ClassSetupPage = () => {
@@ -16,12 +16,28 @@ export const ClassSetupPage = () => {
     subject: ''
   });
 
+  const [recentContexts] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('recentContexts')) || []; } 
+    catch { return []; }
+  });
+
   const handleChange = (e) => setSessionData({ ...sessionData, [e.target.name]: e.target.value });
+
+  const handleSelectRecent = (ctx) => {
+    setSessionData({ ...ctx, timestamp: undefined }); // populate form, but don't submit yet
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Save selection to context or localStorage so dashboard knows the context
-    localStorage.setItem('activeClassSession', JSON.stringify(sessionData));
+    const finalData = { ...sessionData, timestamp: new Date().toISOString() };
+    localStorage.setItem('activeClassSession', JSON.stringify(finalData));
+    
+    // Save to recents
+    const newRecents = [finalData, ...recentContexts.filter(c => 
+      !(c.branch === finalData.branch && c.semester === finalData.semester && c.section === finalData.section && c.subject === finalData.subject)
+    )].slice(0, 3);
+    localStorage.setItem('recentContexts', JSON.stringify(newRecents));
+
     navigate('/dashboard/overview');
   };
 
@@ -42,13 +58,32 @@ export const ClassSetupPage = () => {
           <p className="text-slate-500 font-medium">Please select the class and subject context to proceed to the dashboard.</p>
         </div>
 
+        {recentContexts.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-sm font-bold text-slate-500 mb-3 flex items-center gap-2"><Clock size={14} /> Recently Used Contexts</h3>
+            <div className="flex flex-wrap gap-2">
+              {recentContexts.map((ctx, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleSelectRecent(ctx)}
+                  className="text-xs font-bold px-3 py-1.5 rounded-lg border border-brand-200 dark:border-brand-500/20 bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-brand-500/20 transition-colors shadow-sm"
+                >
+                  {ctx.branch} • {ctx.semester} • Sec {ctx.section} • {ctx.subject}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-slate-400 mt-2 font-medium">Click a recent context to quickly fill the form below.</p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           <div className="space-y-2">
             <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Academic Year</label>
             <div className="relative group">
               <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-500 transition-colors" size={18} />
-              <select name="academicYear" required onChange={handleChange} className="w-full bg-white dark:bg-[#141414]/50 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 appearance-none shadow-sm">
+              <select name="academicYear" required value={sessionData.academicYear} onChange={handleChange} className="w-full bg-white dark:bg-[#141414]/50 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 appearance-none shadow-sm">
                 <option value="">Select Year</option>
                 <option value="1st Year">1st Year</option>
                 <option value="2nd Year">2nd Year</option>
@@ -62,7 +97,7 @@ export const ClassSetupPage = () => {
             <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Branch</label>
             <div className="relative group">
               <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-500 transition-colors" size={18} />
-              <select name="branch" required onChange={handleChange} className="w-full bg-white dark:bg-[#141414]/50 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 appearance-none shadow-sm">
+              <select name="branch" required value={sessionData.branch} onChange={handleChange} className="w-full bg-white dark:bg-[#141414]/50 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 appearance-none shadow-sm">
                 <option value="">Select Branch</option>
                 <option value="CSE">CSE</option>
                 <option value="IT">IT</option>
@@ -79,7 +114,7 @@ export const ClassSetupPage = () => {
             <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Semester</label>
             <div className="relative group">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-500 transition-colors" size={18} />
-              <select name="semester" required onChange={handleChange} className="w-full bg-white dark:bg-[#141414]/50 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 appearance-none shadow-sm">
+              <select name="semester" required value={sessionData.semester} onChange={handleChange} className="w-full bg-white dark:bg-[#141414]/50 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 appearance-none shadow-sm">
                 <option value="">Select Semester</option>
                 {[1,2,3,4,5,6,7,8].map(s => <option key={s} value={`Sem ${s}`}>Semester {s}</option>)}
               </select>
@@ -90,7 +125,7 @@ export const ClassSetupPage = () => {
             <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Section</label>
             <div className="relative group">
               <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-500 transition-colors" size={18} />
-              <select name="section" required onChange={handleChange} className="w-full bg-white dark:bg-[#141414]/50 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 appearance-none shadow-sm">
+              <select name="section" required value={sessionData.section} onChange={handleChange} className="w-full bg-white dark:bg-[#141414]/50 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 appearance-none shadow-sm">
                 <option value="">Select Section</option>
                 <option value="A">Section A</option>
                 <option value="B">Section B</option>
@@ -104,7 +139,7 @@ export const ClassSetupPage = () => {
             <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Subject</label>
             <div className="relative group">
               <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-500 transition-colors" size={18} />
-              <input type="text" name="subject" required onChange={handleChange} placeholder="e.g. Data Structures, Computer Networks..." className="w-full bg-white dark:bg-[#141414]/50 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 shadow-sm" />
+              <input type="text" name="subject" value={sessionData.subject} required onChange={handleChange} placeholder="e.g. Data Structures, Computer Networks..." className="w-full bg-white dark:bg-[#141414]/50 border border-slate-200 dark:border-white/10 rounded-xl py-3.5 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/50 shadow-sm" />
             </div>
           </div>
 

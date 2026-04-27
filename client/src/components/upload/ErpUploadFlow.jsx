@@ -274,9 +274,16 @@ export const ErpUploadFlow = () => {
             <Save size={40} strokeWidth={2} />
           </div>
           <h2 className="text-3xl font-extrabold mb-3">Ready to Analyze</h2>
-          <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md mx-auto">
+          <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
             You are about to save {parsedStudents.length} student records with full CO Mapping logic. The system will automatically compute attainments.
           </p>
+
+          <div className="bg-brand-50/50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/20 rounded-2xl p-4 mb-8 max-w-lg mx-auto flex items-center justify-center gap-2">
+             <ShieldAlert size={18} className="text-brand-600 dark:text-brand-400" />
+             <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+               Uploading for: <span className="text-brand-600 dark:text-brand-400 ml-1">{JSON.parse(localStorage.getItem('activeClassSession') || '{}').branch} | Sem {JSON.parse(localStorage.getItem('activeClassSession') || '{}').semester?.replace('Sem ', '')} | Sec {JSON.parse(localStorage.getItem('activeClassSession') || '{}').section} | {JSON.parse(localStorage.getItem('activeClassSession') || '{}').subject}</span>
+             </p>
+          </div>
           
           <button 
             onClick={handleSave} 
