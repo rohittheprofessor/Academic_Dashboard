@@ -40,7 +40,9 @@ const compareAssessments = async (targetAssessmentId) => {
   // Map Baseline students by Roll No for O(1) lookup
   const baselineMap = new Map();
   baseline.studentRecords.forEach(s => {
-    baselineMap.set(s.rollNo, s);
+    if (s.rollNo) {
+      baselineMap.set(String(s.rollNo).trim().toUpperCase(), s);
+    }
   });
 
   const studentComparisons = [];
@@ -49,7 +51,8 @@ const compareAssessments = async (targetAssessmentId) => {
   let declinedCount = 0;
 
   target.studentRecords.forEach(tStudent => {
-    const bStudent = baselineMap.get(tStudent.rollNo);
+    const rollKey = tStudent.rollNo ? String(tStudent.rollNo).trim().toUpperCase() : null;
+    const bStudent = rollKey ? baselineMap.get(rollKey) : null;
     
     if (bStudent) {
       const diff = tStudent.percentage - bStudent.percentage;
