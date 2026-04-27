@@ -32,9 +32,18 @@ export const useActiveAssessment = () => {
         );
 
         if (matched.length > 0) {
-          // Sort by creation date descending, pick the latest
+          // Sort by creation date descending
           matched.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-          setAssessmentId(matched[0]._id);
+          
+          const selectedId = localStorage.getItem('selectedAssessmentId');
+          const isValidSelection = matched.find(a => a._id === selectedId);
+          
+          if (selectedId && isValidSelection) {
+            setAssessmentId(selectedId);
+          } else {
+            setAssessmentId(matched[0]._id);
+          }
+          
           setHasData(true);
         } else {
           setHasData(false);

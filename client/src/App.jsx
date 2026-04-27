@@ -18,6 +18,7 @@ import { SettingsView } from './components/SettingsView';
 import { ClassSetupPage } from './pages/teacher/ClassSetupPage';
 import { ComparisonView } from './components/ComparisonView';
 import { CoAnalyticsView } from './components/CoAnalyticsView';
+import { HistoryView } from './components/HistoryView';
 import { Toaster } from 'react-hot-toast';
 
 // Protected Route Wrapper
@@ -89,6 +90,7 @@ function App() {
                     <Route path="subjects" element={<SubjectsView />} />
                     <Route path="co" element={<CoAnalyticsView />} />
                     <Route path="compare" element={<ComparisonView />} />
+                    <Route path="history" element={<HistoryView />} />
                     <Route path="upload" element={<UploadView />} />
                     <Route path="settings" element={<SettingsView />} />
                   </Routes>
