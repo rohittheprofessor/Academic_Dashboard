@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { useApi } from '../hooks/useApi';
 import { useNavigate } from 'react-router-dom';
-import { Search, History, Calendar, Users, Activity, ExternalLink, ArrowRight, BookOpen, Clock, Tag } from 'lucide-react';
+import { Search, History, Calendar, Users, Activity, ExternalLink, ArrowRight, BookOpen, Clock, Tag, Trash2 } from 'lucide-react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 
 export const HistoryView = () => {
   const navigate = useNavigate();
-  const { data: allAssessments, isLoading } = useApi('/assessments');
+  const { token } = useAuth();
+  const { data: allAssessments, isLoading, mutate } = useApi('/assessments');
   const [searchTerm, setSearchTerm] = useState('');
 
   const sessionStr = localStorage.getItem('activeClassSession');
@@ -54,12 +58,21 @@ export const HistoryView = () => {
   const handleViewAnalytics = (id) => {
     localStorage.setItem('selectedAssessmentId', id);
     navigate('/dashboard/overview');
-    // Force a small reload or state update if needed, but navigate might be enough
-    // if useActiveAssessment remounts or we trigger an event.
-    // To ensure the hook re-runs, we might need to dispatch an event, 
-    // but React Router's navigate to the same route might not remount. 
-    // Wait, navigate goes to '/dashboard/overview'. History is '/dashboard/history'.
-    // So it WILL mount DashboardView and trigger useActiveAssessment.
+  };
+
+  const handleDelete = async (e, id, testName) => {
+    e.stopPropagation();
+    if (!window.confirm(`Are you sure you want to delete "${testName}"? This action cannot be undone.`)) return;
+    try {
+      await axios.delete(`/api/assessments/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      toast.success('Assessment deleted successfully');
+      if (localStorage.getItem('selectedAssessmentId') === id) {
+        localStorage.removeItem('selectedAssessmentId');
+      }
+      mutate();
+    } catch (err) {
+      toast.error('Failed to delete assessment');
+    }
   };
 
   const getBadgeColor = (type) => {
@@ -163,12 +176,21 @@ export const HistoryView = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => handleViewAnalytics(assessment._id)}
-                        className="inline-flex items-center gap-2 bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2 rounded-xl text-sm font-bold hover:bg-brand-500 dark:hover:bg-brand-500 hover:text-white transition-all shadow-sm opacity-0 group-hover:opacity-100 focus:opacity-100 -translate-x-2 group-hover:translate-x-0"
-                      >
-                        View Analytics <ExternalLink size={14} />
-                      </button>
+                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
+                        <button 
+                          onClick={() => handleViewAnalytics(assessment._id)}
+                          className="inline-flex items-center gap-2 bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-2 rounded-xl text-sm font-bold hover:bg-brand-500 dark:hover:bg-brand-500 hover:text-white transition-all shadow-sm"
+                        >
+                          View Analytics <ExternalLink size={14} />
+                        </button>
+                        <button 
+                          onClick={(e) => handleDelete(e, assessment._id, assessment.metadata?.testName || `Test ${assessment.metadata?.examSequence}`)}
+                          className="p-2.5 rounded-xl bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-all shadow-sm"
+                          title="Delete Assessment"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
