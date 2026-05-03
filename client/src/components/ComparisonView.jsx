@@ -39,6 +39,8 @@ export const ComparisonView = () => {
     diff: s.improvement
   }));
 
+  const needsAttention = data.studentComparisons.filter(s => s.targetScore < 40);
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div>
@@ -90,9 +92,9 @@ export const ComparisonView = () => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="glass rounded-3xl p-6 border border-white/40 shadow-glass">
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Needs Attention</h3>
-          <div className="space-y-3">
-            {data.topDeclined.map((s, i) => (
+          <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6">Needs Attention (&lt; 40%)</h3>
+          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+            {needsAttention.length > 0 ? needsAttention.map((s, i) => (
               <div key={s.rollNo} className="flex items-center justify-between p-4 bg-red-50/50 dark:bg-red-500/5 rounded-2xl border border-red-100 dark:border-red-500/10">
                  <div className="flex items-center gap-3">
                    <span className="font-black text-red-600 opacity-50">#{i+1}</span>
@@ -102,11 +104,11 @@ export const ComparisonView = () => {
                    </div>
                  </div>
                  <div className="text-right">
-                   <p className="font-black text-red-600 dark:text-red-400">{s.improvement}%</p>
-                   <p className="text-xs text-slate-500">{s.baselineScore}% → {s.targetScore}%</p>
+                   <p className="font-black text-red-600 dark:text-red-400">{s.targetScore}%</p>
+                   <p className="text-xs text-slate-500">Target Score</p>
                  </div>
               </div>
-            ))}
+            )) : <p className="text-sm text-slate-500">No students below 40%.</p>}
           </div>
         </motion.div>
       </div>
@@ -135,7 +137,10 @@ export const ComparisonView = () => {
                   <td className="px-6 py-4 font-medium text-slate-600 dark:text-slate-400">{s.rollNo}</td>
                   <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{s.name}</td>
                   <td className="px-6 py-4 text-center font-semibold text-slate-600 dark:text-slate-300">{s.baselineScore}%</td>
-                  <td className="px-6 py-4 text-center font-semibold text-slate-800 dark:text-white">{s.targetScore}%</td>
+                  <td className="px-6 py-4 text-center font-semibold text-slate-800 dark:text-white">
+                    {s.targetScore}%
+                    {s.targetScore < 40 && <span className="ml-2 bg-red-100 text-red-600 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Attention</span>}
+                  </td>
                   <td className="px-6 py-4 text-right font-black">
                     <span className={`px-2.5 py-1 rounded-lg text-xs ${s.improvement > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : s.improvement < 0 ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400' : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-400'}`}>
                       {s.improvement > 0 ? '+' : ''}{s.improvement}%

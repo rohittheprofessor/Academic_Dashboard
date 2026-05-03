@@ -71,7 +71,7 @@ const calculateQuestionAnalytics = (studentRecords, coMappings) => {
   const qStats = [];
 
   coMappings.forEach(mapping => {
-    const { questionNo, maxMarks } = mapping;
+    const { questionNo, maxMarks, bloomsLevel = 'K3' } = mapping;
     
     let totalScore = 0;
     let attemptedCount = 0;
@@ -96,7 +96,8 @@ const calculateQuestionAnalytics = (studentRecords, coMappings) => {
       averageScore,
       maxMarks,
       difficultyIndex,
-      weakFlag
+      weakFlag,
+      bloomsLevel
     });
   });
 

@@ -47,7 +47,7 @@ export const ErpUploadFlow = () => {
       // Initialize default CO mappings using detected max marks
       const initMappings = {};
       data.questionColumns.forEach(q => {
-        initMappings[q] = { co: 'CO1', maxMarks: data.maxMarksMap ? data.maxMarksMap[q] || 5 : 5 }; // defaults
+        initMappings[q] = { co: 'CO1', maxMarks: data.maxMarksMap ? data.maxMarksMap[q] || 5 : 5, bloomsLevel: 'K3' }; // defaults
       });
       setCoMappings(initMappings);
       
@@ -243,6 +243,16 @@ export const ErpUploadFlow = () => {
                       className="w-full bg-white dark:bg-[#141414] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-brand-500 font-bold"
                     >
                       {['CO1','CO2','CO3','CO4','CO5'].map(co => <option key={co} value={co}>{co}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-bold text-slate-500 w-16 shrink-0">Bloom's</label>
+                    <select 
+                      value={coMappings[q].bloomsLevel || 'K3'} 
+                      onChange={(e) => setCoMappings({...coMappings, [q]: {...coMappings[q], bloomsLevel: e.target.value}})}
+                      className="w-full bg-white dark:bg-[#141414] border border-slate-200 dark:border-white/10 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-brand-500 font-bold"
+                    >
+                      {['K1','K2','K3','K4','K5','K6'].map(level => <option key={level} value={level}>{level}</option>)}
                     </select>
                   </div>
                   <div className="flex items-center gap-3">

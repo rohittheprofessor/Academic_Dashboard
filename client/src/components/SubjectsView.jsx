@@ -39,6 +39,15 @@ export const SubjectsView = () => {
   const easiest = sortedByDiff[sortedByDiff.length - 1];
   const weakQuestions = questions.filter(q => q.weakFlag);
 
+  const bloomsMapping = {
+    'K1': { name: 'Remembering', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' },
+    'K2': { name: 'Understanding', color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' },
+    'K3': { name: 'Applying', color: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' },
+    'K4': { name: 'Analyzing', color: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' },
+    'K5': { name: 'Evaluating', color: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' },
+    'K6': { name: 'Creating', color: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400' }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div>
@@ -92,10 +101,17 @@ export const SubjectsView = () => {
                <div key={q.questionNo} className={`p-4 rounded-2xl border ${q.weakFlag ? 'bg-red-50/50 border-red-200 dark:bg-red-500/10 dark:border-red-500/20' : 'bg-slate-50/50 border-slate-100 dark:bg-white/5 dark:border-white/10'} flex items-center justify-between`}>
                  <div className="flex items-center gap-3">
                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#141414] shadow-sm flex items-center justify-center font-black text-brand-600">{q.questionNo}</div>
-                   <div>
-                     <p className="text-sm font-bold">{q.averageScore} / {q.maxMarks} avg</p>
-                     <p className="text-xs text-slate-500">Idx: {q.difficultyIndex}</p>
-                   </div>
+                    <div>
+                      <p className="text-sm font-bold">{q.averageScore} / {q.maxMarks} avg</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-xs text-slate-500">Idx: {q.difficultyIndex}</p>
+                        {q.bloomsLevel && bloomsMapping[q.bloomsLevel] && (
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wider ${bloomsMapping[q.bloomsLevel].color}`}>
+                            {q.bloomsLevel}: {bloomsMapping[q.bloomsLevel].name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                  </div>
                  {q.weakFlag && <span className="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">Weak</span>}
                </div>

@@ -24,6 +24,7 @@ const assessmentSchema = new mongoose.Schema({
   coMappings: [{
     questionNo: { type: String, required: true }, // e.g., 'Q1'
     co: { type: String, enum: ['CO1', 'CO2', 'CO3', 'CO4', 'CO5'], required: true },
+    bloomsLevel: { type: String, enum: ['K1', 'K2', 'K3', 'K4', 'K5', 'K6'], default: 'K3' },
     maxMarks: { type: Number, required: true }
   }],
   studentRecords: [{
@@ -72,7 +73,8 @@ const assessmentSchema = new mongoose.Schema({
       averageScore: Number,
       maxMarks: Number,
       difficultyIndex: Number,
-      weakFlag: Boolean
+      weakFlag: Boolean,
+      bloomsLevel: String
     }]
   },
   isDeleted: { type: Boolean, default: false }
