@@ -76,6 +76,8 @@ export const ErpUploadFlow = () => {
         testType = 'Makeup';
       } else if (tName.includes('EXTERNAL')) {
         testType = 'External';
+      } else if (tName.includes('CES') || tName.includes('SURVEY') || tName.includes('EXIT')) {
+        testType = 'CES';
       }
 
       const finalMetadata = {

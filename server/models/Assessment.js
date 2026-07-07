@@ -15,7 +15,7 @@ const assessmentSchema = new mongoose.Schema({
     sessionYear: String,
     testType: {
       type: String,
-      enum: ['CT', 'Makeup', 'Internal', 'External', 'Other'],
+      enum: ['CT', 'Makeup', 'Internal', 'External', 'CES', 'Other'],
       default: 'CT'
     },
     examSequence: { type: Number, default: 1 }, // CT1 -> 1, CT2 -> 2

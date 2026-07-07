@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, Users, BookOpen, Settings, LogOut, BarChart3, TrendingUp, Target, History } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, Settings, LogOut, BarChart3, TrendingUp, Target, History, Layers } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { motion } from 'framer-motion';
@@ -48,6 +48,7 @@ export const Sidebar = () => {
     { to: '/dashboard/students', label: 'Student Ranks', icon: Users },
     { to: '/dashboard/subjects', label: 'Question Analytics', icon: BookOpen },
     { to: '/dashboard/co', label: 'CO Attainment', icon: Target },
+    { to: '/dashboard/po', label: 'PO/PSO Attainment', icon: Layers },
     { to: '/dashboard/compare', label: 'CT Comparison', icon: TrendingUp },
     { to: '/dashboard/history', label: 'Data History', icon: History },
     { to: '/dashboard/upload', label: 'Upload Data', icon: BarChart3 },

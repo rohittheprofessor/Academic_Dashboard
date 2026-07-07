@@ -45,6 +45,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/assessments', require('./routes/assessmentRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
+app.use('/api/course-config', require('./routes/courseAttainmentRoutes'));
 
 // Start the server first so Render detects the open port immediately
 const PORT = env.port || 5000;
