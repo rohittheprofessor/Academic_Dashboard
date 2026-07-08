@@ -132,10 +132,19 @@ export const parseERPExcel = async (file) => {
             percentage: colMap.percentage !== -1 ? Number(row[colMap.percentage]) : 0
           };
 
-          // Extract question marks
+          // Extract question marks — a truly blank cell means "did not
+          // attempt this question" and must be OMITTED from the marks map
+          // (not stored as 0 or null), so it's excluded from downstream
+          // totals rather than silently counted as a real zero. This
+          // matters a lot for Makeup files, which typically list every
+          // student but only fill in marks for those who actually sat it.
           let calculatedTotal = 0;
           questionColumns.forEach(qCol => {
-            const val = Number(row[qCol.index]) || 0;
+            const raw = row[qCol.index];
+            const isBlank = raw === null || raw === undefined || raw === '';
+            if (isBlank) return; // omit key entirely
+            const val = Number(raw);
+            if (isNaN(val)) return;
             record.marks[qCol.key] = val;
             calculatedTotal += val;
           });
@@ -287,9 +296,13 @@ export const parseCesExcel = async (file) => {
           let total = 0;
           colIndexes.forEach((idx, qi) => {
             const key = `Q${qi + 1}`;
-            const val = Number(row[idx]);
-            marks[key] = isNaN(val) ? 0 : val;
-            total += marks[key];
+            const raw = row[idx];
+            const isBlank = raw === null || raw === undefined || raw === '';
+            if (isBlank) return; // omit key entirely
+            const val = Number(raw);
+            if (isNaN(val)) return;
+            marks[key] = val;
+            total += val;
           });
 
           studentRecords.push({

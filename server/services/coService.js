@@ -24,12 +24,16 @@ const calculateStudentCOAttainment = (studentMarks, coMappings) => {
 
   coMappings.forEach(mapping => {
     const { questionNo, co, maxMarks } = mapping;
-    const obtained = studentMarks[questionNo] || 0; 
+    const obtained = studentMarks[questionNo];
+    // Not attempted (key omitted) — exclude entirely rather than counting
+    // it as a real 0, so a partial/makeup record isn't diluted by
+    // questions the student was never expected to attempt.
+    if (obtained === undefined || obtained === null) return;
 
     if (!coSums[co]) {
       coSums[co] = { obtained: 0, max: 0 };
     }
-    coSums[co].obtained += obtained;
+    coSums[co].obtained += Number(obtained);
     coSums[co].max += maxMarks;
   });
 
