@@ -68,12 +68,12 @@ export const ErpUploadFlow = () => {
       let testType = 'Internal';
       let examSequence = 1;
       
-      if (tName.includes('CT')) {
+      if (tName.includes('MAKEUP')) {
+        testType = 'Makeup';
+      } else if (tName.includes('CT')) {
         testType = 'CT';
         const match = tName.match(/CT[\s-]*(\d+)/);
         if (match) examSequence = parseInt(match[1]);
-      } else if (tName.includes('MAKEUP')) {
-        testType = 'Makeup';
       } else if (tName.includes('EXTERNAL')) {
         testType = 'External';
       } else if (tName.includes('CES') || tName.includes('SURVEY') || tName.includes('EXIT')) {
