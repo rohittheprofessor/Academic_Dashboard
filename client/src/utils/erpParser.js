@@ -74,10 +74,11 @@ export const parseERPExcel = async (file) => {
             if (!cell) return;
             const h = String(cell).toLowerCase().trim();
             
-            if (colMap.sNo === -1 && (h === 's. no.' || h === 's.no' || h === 'sno' || h === 'sr no' || h === 's. no')) colMap.sNo = index;
+            const hNorm = h.replace(/[\s.]/g, '');
+            if (colMap.sNo === -1 && (hNorm === 'sno' || hNorm === 'srno')) colMap.sNo = index;
             else if (colMap.studentId === -1 && h.includes('student id')) colMap.studentId = index;
             else if (colMap.rollNo === -1 && (h.includes('roll no') || h.includes('rollno'))) colMap.rollNo = index;
-            else if (colMap.name === -1 && h === 'name') colMap.name = index;
+            else if (colMap.name === -1 && h.includes('name')) colMap.name = index;
             else if (colMap.total === -1 && h === 'total') colMap.total = index;
             else if (colMap.percentage === -1 && (h.includes('%') || h.includes('percentage') || h.includes('per.'))) colMap.percentage = index;
             
@@ -92,6 +93,25 @@ export const parseERPExcel = async (file) => {
                }
             }
           });
+        }
+
+        // Fallback: some sheets (e.g. assignment sheets) have no Q1/Q2-style
+        // labels at all — just blank header cells above numeric mark columns.
+        // Treat any unclaimed column that has a numeric value in the first
+        // student row as a positional question column (Q1, Q2, Q3...).
+        if (questionColumns.length === 0) {
+          const claimed = new Set([colMap.sNo, colMap.studentId, colMap.rollNo, colMap.name, colMap.total, colMap.percentage]);
+          const firstDataRow = rawRows[tableStartRowIndex + 1] || [];
+          const headerRow = rawRows[tableStartRowIndex] || [];
+          const width = Math.max(headerRow.length, firstDataRow.length);
+          let qNum = 1;
+          for (let idx = 0; idx < width; idx++) {
+            if (claimed.has(idx)) continue;
+            const sample = firstDataRow[idx];
+            if (sample === null || sample === undefined || sample === '' || isNaN(Number(sample))) continue;
+            questionColumns.push({ key: `Q${qNum}`, originalKey: `Q${qNum}`, index: idx });
+            qNum++;
+          }
         }
 
         // Try to auto-detect max marks row (a row before student data starts with numbers in Q columns)
