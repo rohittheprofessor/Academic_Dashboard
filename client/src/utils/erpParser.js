@@ -177,3 +177,230 @@ const extractValueAfter = (rowArray, keyword) => {
   }
   return '';
 };
+
+/**
+ * Parses a CES-style course-exit-survey sheet: a row of CO1..CO5 labels
+ * (repeated once per survey question block) sits above the student table,
+ * with each rating column already implicitly mapped to a specific CO —
+ * so no manual question -> CO mapping step is needed.
+ */
+export const parseCesExcel = async (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const data = e.target.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
+
+        const metadata = {
+          paperCode: '', course: '', program: '', semester: '', section: '', session: '',
+          testName: 'Course Exit Survey'
+        };
+
+        let coRowIndex = -1;
+        let coRowBestCount = 0;
+        let headerRowIndex = -1;
+
+        for (let i = 0; i < rawRows.length; i++) {
+          const row = rawRows[i];
+          if (!row) continue;
+          const rowStr = row.join(' ').toLowerCase();
+
+          if (rowStr.includes('paper code')) metadata.paperCode = extractValueAfter(row, 'paper code');
+          if (rowStr.includes('semester')) metadata.semester = extractValueAfter(row, 'semester');
+          if (rowStr.includes('section')) metadata.section = extractValueAfter(row, 'section');
+          if (rowStr.includes('session')) metadata.session = extractValueAfter(row, 'session');
+
+          // A sheet can have a small CO1..CO5 legend elsewhere above the real
+          // header — take the row with the MOST CO-label matches, not just
+          // the first row with 2+, so a 5-cell legend doesn't win over the
+          // real (e.g. 25-column) mapping header below it.
+          const coCount = row.filter((c) => c && /^CO\s*\d+$/i.test(String(c).trim())).length;
+          if (coCount >= 2 && coCount > coRowBestCount) {
+            coRowBestCount = coCount;
+            coRowIndex = i;
+          }
+
+          if (rowStr.includes('roll no') || rowStr.includes('student id')) {
+            headerRowIndex = i;
+            break;
+          }
+        }
+
+        if (coRowIndex === -1) throw new Error("Could not find the CO header row (a row containing CO1, CO2, CO3... labels above the student table).");
+        if (headerRowIndex === -1) throw new Error("Could not find a 'Roll No' column.");
+
+        const coRow = rawRows[coRowIndex];
+        const colToCO = {};
+        coRow.forEach((cell, idx) => {
+          if (cell && /^CO\s*\d+$/i.test(String(cell).trim())) {
+            colToCO[idx] = String(cell).trim().toUpperCase().replace(/\s+/g, '');
+          }
+        });
+
+        const colIndexes = Object.keys(colToCO).map(Number).sort((a, b) => a - b);
+        if (colIndexes.length === 0) throw new Error("Found a CO header row but couldn't read any CO1..CO5 style labels from it.");
+
+        // Max rating per column: look for a numeric value in the same column,
+        // scanning from the CO-label row through just after the Roll No row.
+        const maxMarksMap = {};
+        for (let r = coRowIndex; r <= headerRowIndex + 1 && r < rawRows.length; r++) {
+          const row = rawRows[r];
+          if (!row) continue;
+          colIndexes.forEach((idx) => {
+            if (maxMarksMap[idx] === undefined && typeof row[idx] === 'number') {
+              maxMarksMap[idx] = row[idx];
+            }
+          });
+        }
+        colIndexes.forEach((idx) => { if (maxMarksMap[idx] === undefined) maxMarksMap[idx] = 5; });
+
+        let rollIdx = -1, nameIdx = -1;
+        rawRows[headerRowIndex].forEach((cell, idx) => {
+          if (!cell) return;
+          const h = String(cell).toLowerCase();
+          if (rollIdx === -1 && (h.includes('roll no') || h.includes('rollno'))) rollIdx = idx;
+          else if (nameIdx === -1 && h.includes('name')) nameIdx = idx;
+        });
+        if (rollIdx === -1) throw new Error("Could not find the Roll No column in the header row.");
+
+        // Synthetic Q1..Qn keys, positionally assigned, each already tagged with its real CO.
+        const questionColumns = colIndexes.map((_, qi) => `Q${qi + 1}`);
+        const coMap = {};
+        const maxMarksByKey = {};
+        colIndexes.forEach((idx, qi) => {
+          coMap[`Q${qi + 1}`] = colToCO[idx];
+          maxMarksByKey[`Q${qi + 1}`] = maxMarksMap[idx];
+        });
+
+        const studentRecords = [];
+        for (let i = headerRowIndex + 1; i < rawRows.length; i++) {
+          const row = rawRows[i];
+          if (!row) continue;
+          const rNo = String(row[rollIdx] || '').trim();
+          if (!rNo || rNo.toLowerCase().includes('roll no')) continue;
+
+          const marks = {};
+          let total = 0;
+          colIndexes.forEach((idx, qi) => {
+            const key = `Q${qi + 1}`;
+            const val = Number(row[idx]);
+            marks[key] = isNaN(val) ? 0 : val;
+            total += marks[key];
+          });
+
+          studentRecords.push({
+            rollNo: rNo,
+            name: nameIdx !== -1 ? String(row[nameIdx] || 'Unknown') : 'Unknown',
+            marks,
+            totalMarks: total,
+            percentage: 0 // CES has no single overall %; only per-CO % matters
+          });
+        }
+
+        if (studentRecords.length === 0) throw new Error("No student rows found below the header row.");
+
+        resolve({ metadata, questionColumns, coMap, maxMarksMap: maxMarksByKey, studentRecords });
+      } catch (err) {
+        reject(err);
+      }
+    };
+
+    reader.onerror = (err) => reject(err);
+    reader.readAsBinaryString(file);
+  });
+};
+export const parseSeeExcel = async (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const data = e.target.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
+
+        const metadata = {
+          paperCode: '', course: '', program: '', semester: '', section: '', session: '',
+          testName: 'External Exam'
+        };
+
+        let headerRowIndex = -1;
+        const colMap = { rollNo: -1, name: -1, marks: -1 };
+        let maxMarks = 100;
+
+        for (let i = 0; i < rawRows.length; i++) {
+          const row = rawRows[i];
+          if (!row) continue;
+          const rowStr = row.join(' ').toLowerCase();
+
+          if (rowStr.includes('paper code')) metadata.paperCode = extractValueAfter(row, 'paper code');
+          if (rowStr.includes('semester')) metadata.semester = extractValueAfter(row, 'semester');
+          if (rowStr.includes('section')) metadata.section = extractValueAfter(row, 'section');
+          if (rowStr.includes('session')) metadata.session = extractValueAfter(row, 'session');
+
+          if (rowStr.includes('roll no') || rowStr.includes('student id')) {
+            headerRowIndex = i;
+            row.forEach((cell, idx) => {
+              if (cell === null || cell === undefined || cell === '') return;
+              // A bare number sitting in the header row is the max-marks
+              // value for that column (this is exactly your sheet's layout).
+              if (typeof cell === 'number') {
+                colMap.marks = idx;
+                maxMarks = cell;
+                return;
+              }
+              const h = String(cell).toLowerCase().trim();
+              if (colMap.rollNo === -1 && (h.includes('roll no') || h.includes('rollno'))) colMap.rollNo = idx;
+              else if (colMap.name === -1 && h.includes('name')) colMap.name = idx;
+              else if (colMap.marks === -1 && /marks|score|obtained|total/.test(h)) colMap.marks = idx;
+            });
+            break;
+          }
+        }
+
+        if (headerRowIndex === -1 || colMap.rollNo === -1) {
+          throw new Error("Could not find a 'Roll No' column. Make sure the sheet has a header row containing 'Roll No'.");
+        }
+        if (colMap.marks === -1) {
+          throw new Error("Could not find the marks column. Add a header like 'Marks Obtained', or leave the max-marks number (e.g. 100) directly in that column's header cell.");
+        }
+
+        const studentRecords = [];
+        for (let i = headerRowIndex + 1; i < rawRows.length; i++) {
+          const row = rawRows[i];
+          if (!row) continue;
+          const rNo = String(row[colMap.rollNo] || '').trim();
+          if (!rNo || rNo.toLowerCase().includes('roll no')) continue;
+
+          const marksVal = Number(row[colMap.marks]);
+          if (row[colMap.marks] === null || row[colMap.marks] === undefined || isNaN(marksVal)) continue;
+
+          const pct = maxMarks > 0 ? Number(((marksVal / maxMarks) * 100).toFixed(2)) : 0;
+          studentRecords.push({
+            rollNo: rNo,
+            name: colMap.name !== -1 ? String(row[colMap.name] || 'Unknown') : 'Unknown',
+            marks: { Q1: marksVal },
+            totalMarks: marksVal,
+            percentage: pct
+          });
+        }
+
+        if (studentRecords.length === 0) {
+          throw new Error("No student rows with a valid mark were found below the header row.");
+        }
+
+        resolve({ metadata, maxMarks, studentRecords });
+      } catch (err) {
+        reject(err);
+      }
+    };
+
+    reader.onerror = (err) => reject(err);
+    reader.readAsBinaryString(file);
+  });
+};
